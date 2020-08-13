@@ -1,12 +1,15 @@
-# Ignore csv files
+# Ignores csv files
 *.csv
 
-# Ignore data directory
+# Ignores png files
+*.png
+
+# Ignores data directory
 data/
 
-# Ignore jupyter files
+# Ignores jupyter files
 *.ipynb_checkpoints/
-*.ipynb
+*/.ipynb_checkpoints/*
 
-# Ignore virtual environment
+# Ignores virtual environment
 venv/

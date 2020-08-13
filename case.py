@@ -6,53 +6,58 @@ import seaborn as sns
 
 sns.set(style='whitegrid', rc={'figure.figsize':(20,8)})
 
+# Reads csv files
 companies = pd.read_csv('data/companies.tsv', sep='\t')
-deals = pd.read_csv('data/deals.tsv', sep='\t',
-                    index_col='dealsDateCreated',
-                    parse_dates=True)
-contacts = pd.read_csv('data/contacts.tsv', sep='\t')
+deals = pd.read_csv('data/deals.tsv', sep='\t')
 sectors = pd.read_csv('data/sectors.tsv', sep='\t')
+contacts = pd.read_csv('data/contacts.tsv', sep='\t')
 
-def value_per_month(df: pd.DataFrame, column: str):
-    """Create a plot with the total sold value of each month and save figure
-    in output directory
+# Removes spaces from column names
+new_columns = dict(zip(contacts.columns, contacts.columns.str.strip()))
+contacts.rename(new_columns, axis=1, inplace=True)
 
-    Args:
-        df: Time series dataframe
-        column: Name of the numerical column to sum by month
-    
+def first_output() -> pd.DataFrame:
+    """Generates a dataframe that enables the creation and analysis of
+    the sold value by month and by contact. Also creates a csv file in
+    output directory
+
     Returns:
+        pd.DataFrame: Dataframe containing contact name, deal value and month
     """
 
-    value_by_month = df.resample('MS').sum()
-    value_by_month['month'] = value_by_month.index.to_series().dt.strftime('%b/%y')
-    # Change the date format to 'mon'/YY
-    #value_by_month['month'] = value_by_month['month'].dt.strftime('%b/%y')
+    contacts_deals = deals.merge(contacts, on='contactsId', how='left')
+    # Creates a date column containing the 'month'/YY
+    contacts_deals['monthYear'] = pd.to_datetime(contacts_deals['dealsDateCreated'])
+    contacts_deals['monthYear'] = contacts_deals['monthYear'].dt.strftime('%b/%y')
+    # Filters columns needed to create the sold value by month and by contact
+    needed_columns = ['contactsName', 'dealsPrice', 'monthYear']
+    first_output = contacts_deals[needed_columns]
 
-    bar_plot = sns.barplot(x='month', y=column,
-                           data=value_by_month, color='dodgerblue')
+    first_output.to_csv('output/first_output.csv', index=False)
 
-    # Set legend, title and x/y labels
-    bar_plot.legend(['Sold Value'])
-    bar_plot.set_title('Total Sold Value By Month', fontsize=20)
-    bar_plot.set(xlabel='Month/Year',ylabel='Sold Value')
+    return first_output
 
-    # Add label to each bar
-    for i, bar in enumerate(bar_plot.patches):
-        h = bar.get_height()
-        bar_plot.text(
-            i, # bar index (x coordinate of text)
-            h+1000, # y coordinate of text
-            '{}'.format(int(h)),  # y label
-            ha='center', 
-            va='center', 
-            size=14)
+def second_output() -> pd.DataFrame:
+    """Creates a dataframe containing information about the percentual sold 
+    value for each sector of the industry. Also exports this csv file to
+    output directory
 
-    # Save plot
-    bar_plot.get_figure().savefig('output/sold_value_month.png')
+    Returns:
+        pd.DataFrame: Dataframe containing the percentage of value by sector
+    """
 
+    companies_deals = deals.merge(companies[['companiesId', 'sectorKey']],
+                                             on='companiesId', how='left')
+    sector_deals = companies_deals.merge(sectors, on='sectorKey', how='left')
+
+    sector_value = sector_deals.groupby('sector').sum().reset_index()
+    sector_percent = sector_value['dealsPrice'] / sector_value['dealsPrice'].sum()
+    sector_value['dealsPercent'] = sector_percent.round(3)
+    sector_value.sort_values('dealsPercent', ascending=False, inplace=True)
+
+    sector_value[['sector', 'dealsPercent']].to_csv('output/second_output.csv',
+                                                    index=False)
     pass
-
 
 
 if __name__ == '__main__':
@@ -60,4 +65,5 @@ if __name__ == '__main__':
         os.mkdir('output')
     except FileExistsError:
         pass
-    value_per_month(deals, 'dealsPrice')
+    first_output()
+    second_output()
