@@ -59,7 +59,6 @@ def second_output() -> pd.DataFrame:
                                                     index=False)
     pass
 
-
 if __name__ == '__main__':
     try:
         os.mkdir('output')
