@@ -4,8 +4,9 @@
 # Ignores png files
 *.png
 
-# Ignores data directory
+# Ignores specific directories
 data/
+output/
 
 # Ignores jupyter files
 *.ipynb_checkpoints/
