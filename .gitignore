@@ -1,11 +1,4 @@
-# Ignores csv files
-*.csv
-
-# Ignores png files
-*.png
-
 # Ignores specific directories
-data/
 output/
 
 # Ignores jupyter files

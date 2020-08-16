@@ -7,11 +7,28 @@ import seaborn as sns
 
 sns.set(style='whitegrid', rc={'figure.figsize':(24,12)})
 
+files = ['data/companies.tsv', 'data/contacts.tsv', 'data/sectors.tsv',
+         'data/deals.tsv']
+
+for file in files:
+    with open(file) as infile, open('data/new_'+file.split('/')[1], mode='w') as outfile:
+        n_invalid = 0
+        for row in infile:
+            try:
+                row.encode('latin1')
+                outfile.write(row)
+            except UnicodeEncodeError:
+                n_invalid += 1
+    print('Number of removed rows from {}: {}'.format(
+        file.split('/')[1], # Referred tsv file
+        n_invalid, # Number of removed rows
+    ))
+
 # Reads csv files
-companies = pd.read_csv('data/companies.tsv', sep='\t')
-deals = pd.read_csv('data/deals.tsv', sep='\t')
-sectors = pd.read_csv('data/sectors.tsv', sep='\t')
-contacts = pd.read_csv('data/contacts.tsv', sep='\t')
+companies = pd.read_csv('data/new_companies.tsv', sep='\t')
+deals = pd.read_csv('data/new_deals.tsv', sep='\t')
+sectors = pd.read_csv('data/new_sectors.tsv', sep='\t')
+contacts = pd.read_csv('data/new_contacts.tsv', sep='\t')
 
 # Removes spaces from column names
 new_columns = dict(zip(contacts.columns, contacts.columns.str.strip()))
@@ -22,7 +39,7 @@ init_rows = contacts.shape[0]
 contacts.drop_duplicates(subset='contactsName', inplace=True)
 final_rows = contacts.shape[0]
 n_removed = init_rows - final_rows
-print('Number of removed rows of contacts file: '.format(n_removed))
+print('Number of removed rows from contacts file: {}'.format(n_removed))
 
 
 def first_output() -> pd.DataFrame:
