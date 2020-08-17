@@ -6,10 +6,6 @@ Resolução da primeira etapa do processo seletivo da Indicium Tech.
 
 Aplicação de ETL em inputs relacionados às negociações, setores, contatos e empresas para obter insumos para a preparação de dados referentes à negociação por setor, por mês e por contato.
 
-## TODOs
-
-- Descobrir como criar uma pasta para o host via imagem docker
-
 ## Configuração de Ambiente
 
 ### Via Ambiente Virtual
@@ -41,7 +37,17 @@ $ deactivate
 
 ### Via Docker
 
-- 
+Para executar via Docker, será necessário fazer a [instalação](https://docs.docker.com/get-docker/) do mesmo.
+
+Após o download, na pasta do arquivo, crie a imagem referente ao case
+
+`$ docker build --tag indicium_case .`
+
+Execute a imagem criada
+
+`$ docker run -it --rm --name run_case indicium_case`
+
+ 
 
 ## Observações
 

@@ -7,28 +7,35 @@ import seaborn as sns
 
 sns.set(style='whitegrid', rc={'figure.figsize':(24,12)})
 
-files = ['data/companies.tsv', 'data/contacts.tsv', 'data/sectors.tsv',
-         'data/deals.tsv']
+# Reads tsv files
+# usecols were used to increase reading speed
+companies = pd.read_csv('data/companies.tsv', sep='\t',
+                        usecols=['companiesId', 'companiesName',
+                                 'sectorKey', 'employeesName'])
+deals = pd.read_csv('data/deals.tsv', sep='\t')
+sectors = pd.read_csv('data/sectors.tsv', sep='\t')
+contacts = pd.read_csv('data/contacts.tsv', sep='\t',
+                       usecols=[' contactsId', 'contactsName'])
 
-for file in files:
-    with open(file) as infile, open('data/new_'+file.split('/')[1], mode='w') as outfile:
-        n_invalid = 0
-        for row in infile:
-            try:
-                row.encode('latin1')
-                outfile.write(row)
-            except UnicodeEncodeError:
-                n_invalid += 1
+dfs = [companies, deals, sectors, contacts]
+dfs_name = ['companies', 'deals', 'sectors', 'contacts']
+
+for i in range(len(dfs)):
+    removed_rows = 0
+    for index, row in dfs[i].iterrows():
+        try:
+            # Encode row as latin
+            row.str.encode('latin1')
+        except UnicodeEncodeError:
+            # Remove row that cannot be encoded as latin1
+            dfs[i].drop(index, inplace=True)
+            removed_rows += 1
+
+    # Print number of removed rows
     print('Number of removed rows from {}: {}'.format(
-        file.split('/')[1], # Referred tsv file
-        n_invalid, # Number of removed rows
-    ))
-
-# Reads csv files
-companies = pd.read_csv('data/new_companies.tsv', sep='\t')
-deals = pd.read_csv('data/new_deals.tsv', sep='\t')
-sectors = pd.read_csv('data/new_sectors.tsv', sep='\t')
-contacts = pd.read_csv('data/new_contacts.tsv', sep='\t')
+        dfs_name[i],
+        removed_rows,
+        ))
 
 # Removes spaces from column names
 new_columns = dict(zip(contacts.columns, contacts.columns.str.strip()))
@@ -39,7 +46,7 @@ init_rows = contacts.shape[0]
 contacts.drop_duplicates(subset='contactsName', inplace=True)
 final_rows = contacts.shape[0]
 n_removed = init_rows - final_rows
-print('Number of removed rows from contacts file: {}'.format(n_removed))
+print('Number of duplicate lines removed from contacts: {}'.format(n_removed))
 
 
 def first_output() -> pd.DataFrame:
@@ -123,6 +130,7 @@ def get_plots():
 
     # Second
     grouped_by_contact = f_out.groupby('contactsName').sum().reset_index()
+    grouped_by_contact.sort_values('dealsPrice', ascending=False, inplace=True)
     value_contacts = sns.barplot(x='contactsName', y='dealsPrice',
                                  data=grouped_by_contact, color='dodgerblue')
     
@@ -146,7 +154,7 @@ def get_plots():
         )
 
     # Saves plot
-    value_contacts.get_figure().savefig('output/sold_value_contacts.png')
+    value_contacts.get_figure().savefig('output/value_by_contact.png')
 
     pass
 
