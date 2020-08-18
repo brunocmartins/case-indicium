@@ -39,15 +39,39 @@ $ deactivate
 
 Para executar via Docker, será necessário fazer a [instalação](https://docs.docker.com/get-docker/) do mesmo.
 
-Após o download, na pasta do arquivo, crie a imagem referente ao case
+Após o download, execute o seguinte comando para baixar a imagem: 
 
-`$ docker build --tag indicium_case .`
+```
+$ docker pull costabrunom/indicium_case
+```
+
+Crie um volume para armazenar os arquivos do container na sua máquina
+
+```
+$ docker volume create my-vol
+```
 
 Execute a imagem criada
 
-`$ docker run -it --rm --name run_case indicium_case`
+```
+$ docker run -it --rm -v my-vol:/costabrunom/case_indicium costabrunom/indicium_case
+```
 
- 
+Depois disso, os arquivos ficaram salvos na pasta referente ao volume criado. É possível conferir o diretório através do comando
+
+```
+$ docker inspect my-vol
+```
+
+Irá aparecer um resultado similar a este:
+
+![Volume Inspect](images/volume_inspect.png)
+
+Para conferir os arquivos, bastar executar o comando
+
+```
+$ sudo ls <diretório_mountpoint>
+``` 
 
 ## Observações
 

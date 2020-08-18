@@ -1,17 +1,14 @@
-FROM ubuntu:18.04
+FROM python:3
 
-COPY requirements.txt ./
+LABEL maintainer="brunocmartins4@gmail.com"
 
-# Install python 3 and pip
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip
+COPY requirements.txt /costabrunom/case_indicium/
+COPY case.py /costabrunom/case_indicium/
+COPY data /costabrunom/case_indicium/data
 
-# Update pip and install required libraries
-RUN pip3 install --upgrade pip && \
-    pip3  install --no-cache-dir -r requirements.txt
+WORKDIR /costabrunom/case_indicium
 
-COPY case.py ./
-COPY data ./data
+# Install required libraries
+RUN pip  install --no-cache-dir -r requirements.txt
 
 CMD ["python3", "./case.py"]
